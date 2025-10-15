@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server"
-import type { UpdateBranchDto } from "@/types/branch"
+import type { UpdateBranchDto, Branch } from "@/types/branch"
 
-// This would be imported from the main route in a real app
-const branches = [
+const branches: Branch[] = [
   {
     id: "1",
     branchName: "Colombo Main Branch",
     branchCode: "CMB001",
-    referenceType: "Hospital" as const,
+    referenceType: "Hospital",
     referenceId: "H001",
     referenceName: "Colombo General Hospital",
     address: "Regent Street, Colombo 08",
@@ -15,7 +14,7 @@ const branches = [
     district: "Colombo",
     contactNumber: "+94112691111",
     email: "colombo@echannelling.com",
-    status: "Active" as const,
+    status: "Active",
     createdAt: "2024-01-15T10:00:00Z",
     updatedAt: "2024-01-15T10:00:00Z",
   },
@@ -43,7 +42,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     ...branches[index],
     ...data,
     updatedAt: new Date().toISOString(),
-  }
+  } as Branch
 
   return NextResponse.json(branches[index])
 }

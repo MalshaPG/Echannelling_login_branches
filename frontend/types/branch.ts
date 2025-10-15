@@ -1,8 +1,11 @@
+export type ReferenceType = "Hospital" | "Agent"
+export type BranchStatus = "Active" | "Inactive"
+
 export interface Branch {
   id: string
   branchName: string
   branchCode: string
-  referenceType: "Hospital" | "Agent"
+  referenceType: ReferenceType
   referenceId: string
   referenceName: string
   address: string
@@ -10,7 +13,7 @@ export interface Branch {
   district: string
   contactNumber: string
   email: string
-  status: "Active" | "Inactive"
+  status: BranchStatus
   createdAt: string
   updatedAt: string
 }
@@ -18,7 +21,7 @@ export interface Branch {
 export interface CreateBranchDto {
   branchName: string
   branchCode: string
-  referenceType: "Hospital" | "Agent"
+  referenceType: ReferenceType
   referenceId: string
   referenceName: string
   address: string
@@ -26,7 +29,7 @@ export interface CreateBranchDto {
   district: string
   contactNumber: string
   email: string
-  status: "Active" | "Inactive"
+  status: BranchStatus
 }
 
 export interface UpdateBranchDto extends Partial<CreateBranchDto> {
