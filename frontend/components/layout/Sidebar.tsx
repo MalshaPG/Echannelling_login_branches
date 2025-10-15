@@ -64,6 +64,11 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
+    title: "Invoices",
+    icon: <FileText className="w-5 h-5" />,
+    href: "/dashboard/invoices",
+  },
+  {
     title: "Finance",
     icon: <Wallet className="w-5 h-5" />,
     children: [
@@ -89,6 +94,13 @@ export function Sidebar() {
 
   const toggleExpand = (title: string) => {
     setExpandedItems((prev) => (prev.includes(title) ? prev.filter((item) => item !== title) : [...prev, title]))
+  }
+
+  const isActive = (href: string) => {
+    if (href === "/dashboard") {
+      return pathname === href
+    }
+    return pathname.includes(href)
   }
 
   return (
@@ -138,7 +150,7 @@ export function Sidebar() {
                             href={child.href}
                             className={cn(
                               "block px-4 py-2 rounded-lg transition-colors hover:bg-white/10",
-                              pathname === child.href && "bg-white/20 font-medium",
+                              isActive(child.href) && "bg-green-500/30 font-medium",
                             )}
                           >
                             {child.title}
@@ -153,7 +165,7 @@ export function Sidebar() {
                   href={item.href!}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors hover:bg-white/10",
-                    pathname === item.href && "bg-white/20 font-medium",
+                    isActive(item.href!) && "bg-green-500/30 font-medium",
                   )}
                 >
                   {item.icon}

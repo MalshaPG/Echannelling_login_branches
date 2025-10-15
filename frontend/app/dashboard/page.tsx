@@ -1,92 +1,150 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { ProtectedLayout } from "@/components/layout/ProtectedLayout"
+import { StatsCard } from "@/components/dashboard/StatsCard"
+import { BarChart } from "@/components/dashboard/BarChart"
+import { PieChart } from "@/components/dashboard/PieChart"
+import { NotificationPanel } from "@/components/dashboard/NotificationPanel"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useAuth } from "@/contexts/AuthContext"
-import { Activity, Users, Calendar, Building2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Building2, Users, Receipt, DollarSign, RotateCw } from "lucide-react"
+import { dashboardApi } from "@/lib/api/dashboardApi"
+import type { DashboardStats, ChartDataPoint, ReconciliationData, Notification } from "@/lib/types/dashboard"
+import { useToast } from "@/hooks/use-toast"
 
 export default function DashboardPage() {
-  const { user } = useAuth()
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([])
+  const [reconciliationData, setReconciliationData] = useState<ReconciliationData[]>([])
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
+
+  const loadData = async () => {
+    setLoading(true)
+    try {
+      const [statsData, chartDataRes, reconciliationDataRes, notificationsData] = await Promise.all([
+        dashboardApi.getStats(),
+        dashboardApi.getChartData(),
+        dashboardApi.getReconciliationData(),
+        dashboardApi.getNotifications(),
+      ])
+
+      setStats(statsData)
+      setChartData(chartDataRes)
+      setReconciliationData(reconciliationDataRes)
+      setNotifications(notificationsData)
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load dashboard data",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  const handleRefresh = () => {
+    toast({
+      title: "Refreshing",
+      description: "Loading latest data...",
+    })
+    loadData()
+  }
+
+  if (loading) {
+    return (
+      <ProtectedLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600" />
+        </div>
+      </ProtectedLayout>
+    )
+  }
 
   return (
     <ProtectedLayout>
       <div className="space-y-6">
-        {/* Welcome Section */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user?.name}!</h1>
-          <p className="text-gray-500 mt-1">Here's what's happening with your eChannelling system today.</p>
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <Button onClick={handleRefresh} variant="outline" size="sm">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatsCard
+              icon={<Building2 className="w-6 h-6 text-white" />}
+              iconBg="bg-blue-500"
+              title="Hospitals"
+              value={stats.hospitals}
+              comparison={stats.changes.hospitals}
+              comparisonType="increase"
+              label="from last month"
+            />
+            <StatsCard
+              icon={<Users className="w-6 h-6 text-white" />}
+              iconBg="bg-green-500"
+              title="Doctors"
+              value={stats.doctors}
+              comparison={stats.changes.doctors}
+              comparisonType="increase"
+              label="from last month"
+            />
+            <StatsCard
+              icon={<Receipt className="w-6 h-6 text-white" />}
+              iconBg="bg-purple-500"
+              title="Transactions"
+              value={stats.transactions.toLocaleString()}
+              comparison={stats.changes.transactions}
+              comparisonType="increase"
+              label="from last month"
+            />
+            <StatsCard
+              icon={<DollarSign className="w-6 h-6 text-white" />}
+              iconBg="bg-orange-500"
+              title="Revenue"
+              value={`LKR ${(stats.revenue / 1000000).toFixed(1)}M`}
+              comparison={18}
+              comparisonType="increase"
+              label="from last month"
+            />
+          </div>
+        )}
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Appointments</CardTitle>
-              <Calendar className="w-5 h-5 text-teal-600" />
+            <CardHeader>
+              <CardTitle>Monthly Fees & Revenue</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">1,234</div>
-              <p className="text-xs text-green-600 mt-1">+12% from last month</p>
+              <BarChart data={chartData} />
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Active Patients</CardTitle>
-              <Users className="w-5 h-5 text-teal-600" />
+            <CardHeader>
+              <CardTitle>Payment Reconciliation Status</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">856</div>
-              <p className="text-xs text-green-600 mt-1">+8% from last month</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Active Doctors</CardTitle>
-              <Activity className="w-5 h-5 text-teal-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-gray-900">42</div>
-              <p className="text-xs text-green-600 mt-1">+2 new this month</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Branches</CardTitle>
-              <Building2 className="w-5 h-5 text-teal-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-gray-900">3</div>
-              <p className="text-xs text-gray-500 mt-1">Across Sri Lanka</p>
+              <PieChart data={reconciliationData} />
             </CardContent>
           </Card>
         </div>
 
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[
-                { title: "New appointment scheduled", detail: "Patient ID: PT-1001 • Dr. Smith • 2 hours ago" },
-                { title: "Branch registered", detail: "Galle Branch • 4 hours ago" },
-                { title: "Doctor schedule updated", detail: "Dr. Fernando • 1 day ago" },
-              ].map((activity, i) => (
-                <div key={i} className="flex items-start gap-4 p-3 rounded-lg bg-gray-50">
-                  <div className="w-2 h-2 rounded-full bg-teal-600 mt-2" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                    <p className="text-xs text-gray-500">{activity.detail}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Notifications */}
+        <NotificationPanel notifications={notifications} />
       </div>
     </ProtectedLayout>
   )
