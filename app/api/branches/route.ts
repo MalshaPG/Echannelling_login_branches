@@ -58,11 +58,16 @@ export async function GET(request: Request) {
   const query = searchParams.get("q")
 
   if (query) {
+    const lowerQuery = query.toLowerCase()
     const filtered = branches.filter(
       (b) =>
-        b.branchName.toLowerCase().includes(query.toLowerCase()) ||
-        b.branchCode.toLowerCase().includes(query.toLowerCase()) ||
-        b.city.toLowerCase().includes(query.toLowerCase()),
+        b.branchName.toLowerCase().includes(lowerQuery) ||
+        b.branchCode.toLowerCase().includes(lowerQuery) ||
+        b.city.toLowerCase().includes(lowerQuery) ||
+        b.referenceName.toLowerCase().includes(lowerQuery) ||
+        b.email.toLowerCase().includes(lowerQuery) ||
+        b.contactNumber.includes(query) ||
+        b.district.toLowerCase().includes(lowerQuery),
     )
     return NextResponse.json(filtered)
   }
