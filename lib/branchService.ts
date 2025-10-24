@@ -43,7 +43,7 @@ export const branchService = {
   },
 
   async searchBranches(query: string): Promise<Branch[]> {
-    const response = await fetch(`${API_BASE_URL}/search?q=${encodeURIComponent(query)}`)
+    const response = await fetch(`${API_BASE_URL}?q=${encodeURIComponent(query)}`)
     if (!response.ok) throw new Error("Failed to search branches")
     return response.json()
   },
