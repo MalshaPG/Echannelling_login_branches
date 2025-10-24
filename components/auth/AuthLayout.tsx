@@ -2,14 +2,7 @@
 
 import type React from "react"
 
-interface AuthLayoutProps {
-  children: React.ReactNode
-  title?: string
-  description?: string
-}
-
-export function AuthLayout({ children, title, description }: AuthLayoutProps) {
-  // You can use title/description here or ignore them if only accepted for typing
+export function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-gradient-to-br from-[#003d82] via-[#0066a1] to-[#00a896]" />
