@@ -74,6 +74,7 @@ const menuItems: MenuItem[] = [
     children: [
       { title: "Revenue", href: "/dashboard/revenue" },
       { title: "Payouts", href: "/dashboard/payouts" },
+      { title: "Discounts & Offers", href: "/dashboard/discounts" },
     ],
   },
   {
@@ -84,7 +85,10 @@ const menuItems: MenuItem[] = [
   {
     title: "Settings",
     icon: <Settings className="w-5 h-5" />,
-    href: "/dashboard/settings",
+    children: [
+    { title: "Audit Logs", href: "/dashboard/audit-logs" }, 
+    { title: "Settings", href: "/dashboard/settings" },
+  ],
   },
 ]
 
