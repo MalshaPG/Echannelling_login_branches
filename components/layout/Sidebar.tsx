@@ -15,6 +15,7 @@ import {
   Wallet,
   FileText,
   Settings,
+  Percent,
   ChevronDown,
   ChevronRight,
 } from "lucide-react"
@@ -67,6 +68,11 @@ const menuItems: MenuItem[] = [
     title: "Invoices",
     icon: <FileText className="w-5 h-5" />,
     href: "/dashboard/invoices",
+  },
+  {
+    title: "Discounts and offers",
+    icon: <Percent className="w-5 h-5" />,
+    href: "/dashboard/discounts",
   },
   {
     title: "Finance",
