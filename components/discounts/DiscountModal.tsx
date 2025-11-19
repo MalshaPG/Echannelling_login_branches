@@ -5,14 +5,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Calendar } from "@/components/ui/calendar"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { useToast } from "@/hooks/use-toast"
 import { discountService } from "@/lib/discountService"
@@ -26,12 +19,26 @@ interface DiscountModalProps {
 export function DiscountModal({ isOpen, onClose, onSuccess }: DiscountModalProps) {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
+  
+  const getDefaultDate = () => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return today
+  }
+  
+  const getDefaultToDate = () => {
+    const date = new Date()
+    date.setDate(date.getDate() + 30)
+    date.setHours(0, 0, 0, 0)
+    return date
+  }
+  
   const [formData, setFormData] = useState({
     code: "",
     description: "",
     discountPercentage: "",
-    validFrom: new Date(),
-    validTo: new Date(),
+    validFrom: getDefaultDate(),
+    validTo: getDefaultToDate(),
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -140,54 +147,32 @@ export function DiscountModal({ isOpen, onClose, onSuccess }: DiscountModalProps
 
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label>Valid From *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "justify-start text-left font-normal",
-                      !formData.validFrom && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.validFrom ? format(formData.validFrom, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={formData.validFrom}
-                    onSelect={(date) => date && setFormData(prev => ({ ...prev, validFrom: date }))}
-                    disabled={(date) => date < new Date()}
-                  />
-                </PopoverContent>
-              </Popover>
+              <Label htmlFor="validFrom">Valid From *</Label>
+              <Input
+                id="validFrom"
+                type="date"
+                value={formData.validFrom.toISOString().split('T')[0]}
+                onChange={(e) => {
+                  const date = new Date(e.target.value)
+                  date.setHours(0, 0, 0, 0)
+                  setFormData(prev => ({ ...prev, validFrom: date }))
+                }}
+                min={new Date().toISOString().split('T')[0]}
+              />
             </div>
             <div className="grid gap-2">
-              <Label>Valid To *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "justify-start text-left font-normal",
-                      !formData.validTo && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.validTo ? format(formData.validTo, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={formData.validTo}
-                    onSelect={(date) => date && setFormData(prev => ({ ...prev, validTo: date }))}
-                    disabled={(date) => date < formData.validFrom}
-                  />
-                </PopoverContent>
-              </Popover>
+              <Label htmlFor="validTo">Valid To *</Label>
+              <Input
+                id="validTo"
+                type="date"
+                value={formData.validTo.toISOString().split('T')[0]}
+                onChange={(e) => {
+                  const date = new Date(e.target.value)
+                  date.setHours(0, 0, 0, 0)
+                  setFormData(prev => ({ ...prev, validTo: date }))
+                }}
+                min={formData.validFrom.toISOString().split('T')[0]}
+              />
             </div>
           </div>
 
