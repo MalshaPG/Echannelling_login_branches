@@ -10,6 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Search, Edit, Trash2, Eye } from "lucide-react"
 import { agentService } from "@/lib/agentService"
 import { useToast } from "@/hooks/use-toast"
+import { AgentModal } from "@/components/agents/AgentModal"
+import { EditAgentModal } from "@/components/agents/EditAgentModal"
 import type { Agent } from "@/types/agent"
 import Link from "next/link"
 
@@ -18,6 +20,9 @@ export default function AgentsPage() {
   const [agents, setAgents] = useState<Agent[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
 
   const loadAgents = async () => {
     try {
@@ -69,7 +74,7 @@ export default function AgentsPage() {
             <h1 className="text-3xl font-bold text-gray-900">Cooperate Agents</h1>
             <p className="text-gray-500 mt-1">Manage agent offices and partners</p>
           </div>
-          <Button className="bg-teal-600 hover:bg-teal-700">
+          <Button className="bg-teal-600 hover:bg-teal-700" onClick={() => setIsModalOpen(true)}>
             <Plus className="w-4 h-4 mr-2" /> Add New Agent
           </Button>
         </div>
@@ -134,7 +139,14 @@ export default function AgentsPage() {
                               <Eye className="w-4 h-4" />
                             </Button>
                           </Link>
-                          <Button variant="ghost" size="icon">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => {
+                              setSelectedAgent(agent)
+                              setIsEditModalOpen(true)
+                            }}
+                          >
                             <Edit className="w-4 h-4" />
                           </Button>
                           <Button variant="ghost" size="icon" onClick={() => handleDelete(agent.id)} className="text-red-600 hover:text-red-700">
@@ -150,6 +162,17 @@ export default function AgentsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <AgentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={loadAgents} />
+      <EditAgentModal 
+        isOpen={isEditModalOpen} 
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setSelectedAgent(null)
+        }} 
+        onSuccess={loadAgents} 
+        agent={selectedAgent}
+      />
     </ProtectedLayout>
   )
 }

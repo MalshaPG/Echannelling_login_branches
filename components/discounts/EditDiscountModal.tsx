@@ -1,48 +1,59 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { cn } from "@/lib/utils"
-import { format } from "date-fns"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { discountService } from "@/lib/discountService"
+import type { Discount } from "@/types/discount"
 
-interface DiscountModalProps {
+interface EditDiscountModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
+  discount: Discount | null
 }
 
-export function DiscountModal({ isOpen, onClose, onSuccess }: DiscountModalProps) {
+export function EditDiscountModal({ isOpen, onClose, onSuccess, discount }: EditDiscountModalProps) {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
-  
-  const getDefaultDate = () => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    return today
-  }
-  
-  const getDefaultToDate = () => {
-    const date = new Date()
-    date.setDate(date.getDate() + 30)
-    date.setHours(0, 0, 0, 0)
-    return date
-  }
-  
-  const [formData, setFormData] = useState({
+
+  const [formData, setFormData] = useState<{
+    code: string
+    description: string
+    discountPercentage: string
+    validFrom: Date
+    validTo: Date
+    status: "Active" | "Inactive" | "Expired"
+  }>({
     code: "",
     description: "",
     discountPercentage: "",
-    validFrom: getDefaultDate(),
-    validTo: getDefaultToDate(),
+    validFrom: new Date(),
+    validTo: new Date(),
+    status: "Active",
   })
+
+  useEffect(() => {
+    if (discount && isOpen) {
+      setFormData({
+        code: discount.code || "",
+        description: discount.description || "",
+        discountPercentage: discount.discountPercentage.toString() || "",
+        validFrom: new Date(discount.validFrom),
+        validTo: new Date(discount.validTo),
+        status: (discount.status as "Active" | "Inactive" | "Expired") || "Active",
+      })
+    }
+  }, [discount, isOpen])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!discount) return
 
     if (!formData.code || !formData.description || !formData.discountPercentage) {
       toast({
@@ -74,21 +85,22 @@ export function DiscountModal({ isOpen, onClose, onSuccess }: DiscountModalProps
 
     try {
       setLoading(true)
-      await discountService.createDiscount({
+      await discountService.updateDiscount({
+        id: discount.id,
         code: formData.code,
         description: formData.description,
         discountPercentage,
         validFrom: formData.validFrom.toISOString(),
         validTo: formData.validTo.toISOString(),
-        status: "Active",
+        status: formData.status,
       })
-      toast({ title: "Success", description: "Discount created successfully" })
+      toast({ title: "Success", description: "Discount updated successfully" })
       onSuccess()
       onClose()
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create discount",
+        description: "Failed to update discount",
         variant: "destructive",
       })
     } finally {
@@ -105,7 +117,7 @@ export function DiscountModal({ isOpen, onClose, onSuccess }: DiscountModalProps
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Add New Discount</DialogTitle>
+          <DialogTitle>Edit Discount</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
@@ -157,7 +169,6 @@ export function DiscountModal({ isOpen, onClose, onSuccess }: DiscountModalProps
                   date.setHours(0, 0, 0, 0)
                   setFormData(prev => ({ ...prev, validFrom: date }))
                 }}
-                min={new Date().toISOString().split('T')[0]}
               />
             </div>
             <div className="grid gap-2">
@@ -171,9 +182,22 @@ export function DiscountModal({ isOpen, onClose, onSuccess }: DiscountModalProps
                   date.setHours(0, 0, 0, 0)
                   setFormData(prev => ({ ...prev, validTo: date }))
                 }}
-                min={formData.validFrom.toISOString().split('T')[0]}
               />
             </div>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="status">Status</Label>
+            <Select value={formData.status} onValueChange={(value: string) => setFormData(prev => ({ ...prev, status: value as "Active" | "Inactive" | "Expired" }))}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Active">Active</SelectItem>
+                <SelectItem value="Inactive">Inactive</SelectItem>
+                <SelectItem value="Expired">Expired</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <DialogFooter>
@@ -181,7 +205,7 @@ export function DiscountModal({ isOpen, onClose, onSuccess }: DiscountModalProps
               Cancel
             </Button>
             <Button type="submit" className="bg-teal-600 hover:bg-teal-700" disabled={loading}>
-              {loading ? "Creating..." : "Create Discount"}
+              {loading ? "Updating..." : "Update Discount"}
             </Button>
           </DialogFooter>
         </form>

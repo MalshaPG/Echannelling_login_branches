@@ -18,6 +18,7 @@ import {
   Percent,
   ChevronDown,
   ChevronRight,
+  History,
 } from "lucide-react"
 
 interface MenuItem {
@@ -86,6 +87,11 @@ const menuItems: MenuItem[] = [
     title: "Reports",
     icon: <FileText className="w-5 h-5" />,
     href: "/dashboard/reports",
+  },
+  {
+    title: "Audit Logs",
+    icon: <History className="w-5 h-5" />,
+    href: "/dashboard/audit-logs",
   },
   {
     title: "Settings",
