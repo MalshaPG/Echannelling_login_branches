@@ -30,6 +30,7 @@ import type { Discount } from "@/types/discount"
 import { format } from "date-fns"
 import { DiscountsTableSkeleton } from "@/components/discounts/DiscountsTableSkeleton"
 import { DiscountModal } from "@/components/discounts/DiscountModal"
+import { EditDiscountModal } from "@/components/discounts/EditDiscountModal"
 
 export default function DiscountsPage() {
   const { toast } = useToast()
@@ -39,6 +40,8 @@ export default function DiscountsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [selectedDiscount, setSelectedDiscount] = useState<Discount | null>(null)
   const itemsPerPage = 10
 
   const loadDiscounts = async (page: number = 1, search?: string) => {
@@ -111,11 +114,6 @@ export default function DiscountsPage() {
           <Button className="bg-teal-600 hover:bg-teal-700" onClick={() => setIsModalOpen(true)}>
             <Plus className="w-4 h-4 mr-2" /> Add New Discount
           </Button>
-          <DiscountModal 
-            isOpen={isModalOpen} 
-            onClose={() => setIsModalOpen(false)} 
-            onSuccess={() => loadDiscounts(currentPage)} 
-          />
         </div>
 
         <Card>
@@ -180,7 +178,14 @@ export default function DiscountsPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            <Button variant="ghost" size="icon">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => {
+                                setSelectedDiscount(discount)
+                                setIsEditModalOpen(true)
+                              }}
+                            >
                               <Edit className="w-4 h-4" />
                             </Button>
                             <Button
@@ -234,6 +239,20 @@ export default function DiscountsPage() {
           </CardContent>
         </Card>
       </div>
+      <DiscountModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSuccess={() => loadDiscounts(currentPage)} 
+      />
+      <EditDiscountModal 
+        isOpen={isEditModalOpen} 
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setSelectedDiscount(null)
+        }} 
+        onSuccess={() => loadDiscounts(currentPage)} 
+        discount={selectedDiscount}
+      />
     </ProtectedLayout>
   )
 }
